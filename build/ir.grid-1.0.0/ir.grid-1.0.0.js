@@ -16,7 +16,7 @@
 
   	_create : function() {
   		this.element.addClass("ui-grid");
-
+      this.elements = {};
   		this.redraw();
   	},
 
