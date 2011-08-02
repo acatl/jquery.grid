@@ -1,0 +1,7 @@
+/*
+ * Grid for jQuery
+ *
+ * Copyright (c) 2011 Acatl Pacheco https://github.com/acatl/jquery.grid
+ * Licensed under the MIT License.
+ * http://jquery.org/license
+ */

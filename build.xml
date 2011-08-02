@@ -1,0 +1,85 @@
+<!--ant-->
+<project name="jquery.grid" default="all" basedir=".">
+  <property file="build.properties" />
+  <property name="PREFIX" value="."/>
+  <property name="LICENSE" value="${file.license}"/>
+  <property name="README" value="${file.readme}"/>
+  <property name="COMPILER" value="${lib.compiler}"/>
+  <property name="VERSION" value="${project.version.mayor}.${project.version.minor}.${project.version.bugfix}"/>
+  <property name="PROJECT" value="${project.namespace}.${project.name}"/>
+  <property name="PROJECT_VERSIONED" value="${PROJECT}-${VERSION}"/>
+  <property name="RAW_OUTPUT_FILE" value="${PROJECT_VERSIONED}.js"/>
+  <property name="MIN_OUTPUT_FILE" value="${PROJECT_VERSIONED}.min.js"/>
+  <property name="DISTRIBUTION" value="build/${PROJECT_VERSIONED}"/>
+  <property name="RAW_OUTPUT_PATH" value="${DISTRIBUTION}/${RAW_OUTPUT_FILE}"/>
+  <property name="MIN_OUTPUT_PATH" value="${DISTRIBUTION}/${MIN_OUTPUT_FILE}"/>
+  <target name="all" depends="common"/>
+  <target name="common" depends="js.merge, js.remove.console, js.minimize, js.javadoc.file"/>
+
+  <!-- js.merge -->
+  <target name="js.merge" description="Merging files">
+    <echo message="Merging ${RAW_OUTPUT_PATH} ${some.data}"/>
+    <mkdir dir="${DISTRIBUTION}"/>
+    <concat destfile="${RAW_OUTPUT_PATH}">
+      <filelist dir="source" files="${includes.js}"/>
+    </concat>
+    <echo message="${RAW_OUTPUT_PATH} merged."/>
+  </target>
+
+  <!--js.remove.console-->
+  <target name="js.remove.console" description="Commenting out console.log lines">
+    <echo>Commenting out console.log lines..</echo> 
+    <replaceregexp match="(console.log\(.*\))" replace="/\*\1\*/" flags="g" >  
+      <fileset dir="${DISTRIBUTION}/">  
+        <include name="**/*.js"/>  
+        <exclude name="**/*.min.js"/>  
+      </fileset>  
+    </replaceregexp>
+  </target>
+
+  <!-- js.minimize -->
+  <target name="js.minimize" description="minimize files">
+    <echo message="Minimizing ${MIN_OUTPUT_PATH}"/>
+    <apply executable="java" parallel="false" verbose="true" dest="${DISTRIBUTION}">
+      <fileset dir="${DISTRIBUTION}">
+        <include name="${PROJECT_VERSIONED}.js"/>
+      </fileset>
+      <arg line="-jar"/>
+      <arg path="${COMPILER}"/>
+      <arg value="--warning_level"/>
+      <arg value="QUIET"/>
+      <arg value="--js_output_file"/>
+      <targetfile/>
+      <arg value="--js"/>
+      <mapper type="glob" from="${PROJECT_VERSIONED}.js" to="tmpmin"/>
+    </apply>
+    <!-- MINIMIZED VERSION -->
+    <concat destfile="${MIN_OUTPUT_PATH}" fixlastline="yes">
+      <fileset file="${LICENSE}"/>
+      <fileset file="${README}"/>
+      <fileset file="${DISTRIBUTION}/tmpmin"/>
+    </concat>
+    <!-- DELETE TEMPS -->
+    <delete file="${DISTRIBUTION}/tmpmin"/>
+    <echo message="${MIN_OUTPUT_PATH} built."/>
+  </target>
+
+  <!--js.javadoc.file-->
+  <target name="js.javadoc.file" description="Version the content">
+    <echo>Taggging the content</echo> 
+    <replaceregexp match="(#package)" replace="${project.namespace}" flags="g" >  
+      <fileset file="${MIN_OUTPUT_PATH}"/>  
+      <fileset file="${DISTRIBUTION}/${PROJECT_VERSIONED}.css"/>  
+    </replaceregexp>
+
+    <replaceregexp match="(#project)" replace="${project.name}" flags="g" >  
+      <fileset file="${MIN_OUTPUT_PATH}"/>  
+      <fileset file="${DISTRIBUTION}/${PROJECT_VERSIONED}.css"/>  
+    </replaceregexp>
+
+    <replaceregexp match="(#version)" replace="${VERSION}" flags="g" >  
+      <fileset file="${MIN_OUTPUT_PATH}"/>  
+      <fileset file="${DISTRIBUTION}/${PROJECT_VERSIONED}.css"/>  
+    </replaceregexp>
+  </target>
+</project>
